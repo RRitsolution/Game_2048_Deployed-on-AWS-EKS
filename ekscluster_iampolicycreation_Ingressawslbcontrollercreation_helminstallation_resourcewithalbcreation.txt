@@ -1,0 +1,46 @@
+EKS Production-Grade Cluster setup
+
+EKS Cluster setup:-
+eksctl create cluster --name production-eks --nodegroup-name production-nodes --node-type t2.medium --nodes 3 --nodes-min 2 --nodes-max 10 --region us-east-1 --managed
+kubectl get nodes
+eksctl utils associate-iam-oidc-provider --cluster production-eks --approve --region us-east-1
+curl -o iam_policy.json   https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/main/docs/install/iam_policy.json
+aws iam create-policy --policy-name AWSLoadBalancerControllerIAMPolicy --policy-document file://iam_policy.json
+eksctl create iamserviceaccount --cluster production-eks --namespace kube-system --name aws-load-balancer-controller --attach-policy-arn arn:aws:iam::631844602603:policy/AWSLoadBalancerControllerIAMPolicy --override-existing-serviceaccounts --region us-east-1 --approve
+
+Helm installation:-
+
+helm version
+helm repo add eks https://aws.github.io/eks-charts
+curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+chmod 777 get_helm.sh
+./get_helm.sh
+helm -version
+which helm
+
+
+
+Helm EKS repo chart add:-
+helm repo add  https://aws.github.io/eks-charts
+helm repo update
+clear
+helm install aws-load-balancer-controller eks/aws-load-balancer-controller   -n kube-system   --set clusterName=production-eks   --set serviceAccount.create=false   --set serviceAccount.name=aws-load-balancer-controller   --set region=us-east-1   --set vpcId=$(aws eks describe-cluster --name production-eks --region us-east-1 --query "cluster.resourcesVpcConfig.vpcId" --output text)
+
+
+kubectl get all
+kubectl get all -n kube-system
+kubectl create ns production-app
+
+nano app.yaml
+kubectl apply -f app.yaml
+cat app.yaml
+kubectl get all -n production-app
+nano service.yaml
+kubectl apply -f service.yaml
+
+nano ingress.yaml
+kubectl apply -f ingress.yaml
+kubectl get ingress -n production-app
+nslookup k8s-producti-webingre-9423e09705-173333879.us-east-1.elb.amazonaws.com
+kubectl get pods -n production-app
+
