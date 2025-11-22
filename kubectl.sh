@@ -1,6 +1,6 @@
 sudo apt-get update
 # apt-transport-https may be a dummy package; if so, you can skip that package
-sudo apt-get install -y apt-tra
+sudo apt-get install -y apt-transport-https ca-certificates curl gnupg
 
 # If the folder `/etc/apt/keyrings` does not exist, it should be created before the curl command, read the note below.
 # sudo mkdir -p -m 755 /etc/apt/keyrings
